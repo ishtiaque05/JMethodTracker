@@ -1,7 +1,9 @@
 package com.ishtiaque.JTracker;
 
 import com.ishtiaque.GitService.RepositoryService;
+import com.ishtiaque.Parser.JavaParser;
 import com.ishtiaque.Util.Util;
+import com.ishtiaque.Wrappers.StartEnv;
 import org.apache.commons.cli.*;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.ObjectId;
@@ -33,14 +35,13 @@ public class MainCli {
 
         try {
             CommandLine line = parser.parse(options, args);
-            String repositoryPath = line.getOptionValue("repopath");
+            String repopath = line.getOptionValue("repopath");
             // Unix vs. Windows. Probably there is a better way to do this.
-            String pathDelimiter = repositoryPath.contains("\\\\") ? "\\\\" : "/";
+            String pathDelimiter = repopath.contains("\\\\") ? "\\\\" : "/";
             // Repo paths need to reference the .git directory. We add it to the path if it's not provided.
             String gitPathEnding = pathDelimiter + ".git";
-            if (!repositoryPath.endsWith(gitPathEnding)) {
-                repositoryPath += gitPathEnding;
-            }
+            String repositoryPath = repopath;
+            if (!repopath.endsWith(gitPathEnding)) { repositoryPath = repopath + gitPathEnding; }
 
             String[] split = repositoryPath.replace(gitPathEnding, "").split(pathDelimiter);
             String repositoryName = split[split.length - 1];
@@ -55,11 +56,14 @@ public class MainCli {
                 outputFilePath = System.getProperty("user.dir") + "/" + repositoryName + "-trackingInfo.json";
             }
 //            FOR DEBUGGING
-
+            StartEnv startenv = new StartEnv(repopath + "/",  startCommitName, outputFilePath, repositoryName);
             Repository repository = Util.createRepository(repositoryPath);
+            JavaParser.setupParser(); // setup parser
             ObjectId startID = repository.resolve(startCommitName);
             Git git = new Git(repository);
-            RepositoryService.startTracking(git, startID);
+            RepositoryService repoService = new RepositoryService(git, repository, startenv);
+            repoService.startTracking(startID);
+
         } catch (ParseException e){
             HelpFormatter formatter = new HelpFormatter();
             formatter.printHelp("java -jar <codeshovel-jar-file>", options);
