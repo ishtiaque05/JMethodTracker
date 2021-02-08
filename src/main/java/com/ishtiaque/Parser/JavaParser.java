@@ -20,7 +20,7 @@ public class JavaParser {
     }
 
     public static void parseFile(String file) throws FileNotFoundException {
-        CompilationUnit cu = StaticJavaParser.parse(new File(file));
+        CompilationUnit cu = StaticJavaParser.parse(file);
         if (cu != null) {
             VoidVisitor<String> methodVisitor = new MethodLister();
             methodVisitor.visit(cu, file);

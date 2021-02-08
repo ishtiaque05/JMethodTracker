@@ -4,15 +4,14 @@ import com.ishtiaque.Parser.JavaParser;
 import com.ishtiaque.Wrappers.StartEnv;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.treewalk.TreeWalk;
 
 import java.io.IOException;
+import java.io.OutputStream;
 
 public class RepositoryService {
     private Git git;
@@ -57,11 +56,31 @@ public class RepositoryService {
                     System.out.println("found: " + treeWalk.getPathString());
                     String filepath = treeWalk.getPathString();
                     if(filepath.endsWith(".java")) {
-                        JavaParser.parseFile(startenv.getRepopath() + filepath);
+                        ObjectId blobId = treeWalk.getObjectId(0);
+//                        startenv.getRepopath() + filepath
+                        JavaParser.parseFile(getFileContentByObjectId(blobId));
                     }
                 }
             }
         }
+    }
+
+    public String getFileContentByObjectId(ObjectId objectId) throws IOException {
+        ObjectLoader loader = this.repository.open(objectId);
+        OutputStream output = new OutputStream()
+            {
+                private StringBuilder string = new StringBuilder();
+                @Override
+                public void write(int b) {
+                    this.string.append((char) b);
+                }
+                public String toString(){
+                    return this.string.toString();
+                }
+            };
+            loader.copyTo(output);
+            String fileContent = output.toString();
+        return fileContent;
     }
 
 }
