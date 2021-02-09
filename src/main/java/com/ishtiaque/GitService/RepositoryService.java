@@ -38,7 +38,7 @@ public class RepositoryService {
             System.out.println(commit.getName());
             if (startenv.getStartcommit().equals(commit.getName())) {
                 tracker.setCurrentCommit(commit.getName());
-                tracker.setPrevCommit("");
+                tracker.setPrevCommit(null);
             } else {
                 tracker.setPrevCommit(tracker.getCurrentCommit());
                 tracker.setCurrentCommit(commit.getName());
@@ -47,6 +47,7 @@ public class RepositoryService {
             count++;
         }
         System.out.println(count);
+//        Save the JSON here!!
     }
 
     public Repository getRepository() { return repository; }
@@ -64,20 +65,20 @@ public class RepositoryService {
             try (TreeWalk treeWalk = new TreeWalk(repository)) {
                 treeWalk.addTree(tree);
                 treeWalk.setRecursive(true);
-                ArrayList<String> methodList = new ArrayList<String>();;
                 while (treeWalk.next()) {
                     System.out.println("found: " + treeWalk.getPathString());
                     String filepath = treeWalk.getPathString();
                     if(filepath.endsWith(".java")) {
                         ObjectId blobId = treeWalk.getObjectId(0);
 //                        startenv.getRepopath() + filepath
-                        JavaParser.parseFile(getFileContentByObjectId(blobId), filepath, methodList);
+                        JavaParser.parseFile(getFileContentByObjectId(blobId), filepath, this.tracker);
                     }
                 }
-                this.tracker.addData(refCommit, methodList);
+                this.tracker.addData(refCommit);
 //                TODO compare data here
             }
         }
+        this.tracker.resetCurrentMethodVars();
     }
 
     public String getFileContentByObjectId(ObjectId objectId) throws IOException {

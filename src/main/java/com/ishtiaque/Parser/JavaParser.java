@@ -7,6 +7,7 @@ import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.visitor.VoidVisitor;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
+import com.ishtiaque.JTracker.Tracker;
 import com.ishtiaque.Util.Util;
 
 import java.io.File;
@@ -22,11 +23,11 @@ public class JavaParser {
         StaticJavaParser.setConfiguration(parserConfiguration);
     }
 
-    public static void parseFile(String fileContent, String filepath, List<String> methodListCollector) throws FileNotFoundException {
+    public static void parseFile(String fileContent, String filepath, Tracker tracker) throws FileNotFoundException {
         CompilationUnit cu = StaticJavaParser.parse(fileContent);
         if (cu != null) {
-            VoidVisitor<List<String>> methodVisitor = new MethodLister(filepath);
-            methodVisitor.visit(cu, methodListCollector);
+            VoidVisitor<String> methodVisitor = new MethodLister(tracker);
+            methodVisitor.visit(cu, filepath);
 //            return methodListCollector;
         } else {
             System.out.println("NULL compilation unit");
@@ -34,29 +35,26 @@ public class JavaParser {
         }
     }
 
-    public static class MethodLister extends VoidVisitorAdapter<List<String>> {
-        public static String filepath;
-        public MethodLister(String filepath) {
-            this.filepath = filepath;
+    public static class MethodLister extends VoidVisitorAdapter<String> {
+        public static Tracker tracker;
+        public MethodLister(Tracker tracker) {
+            this.tracker = tracker;
         }
         @Override
-        public void visit(MethodDeclaration mt, List<String> collector) {
-            super.visit(mt, collector);
+        public void visit(MethodDeclaration mt, String filepath) {
+            super.visit(mt, filepath);
             //System.out.println(mt.getName());
             System.out.println(mt.getNameAsString());
-            collector.add(Util.buildMethodIdentifier(this.filepath, mt.getNameAsString(), mt.getName().getBegin().get().line));
-//            Method method = new Method();
-//            method.name = mt.getNameAsString();
-//            method.path = file.replace(Main.BASE_PATH + Main.PROJECT + "/", "");
-//            method.lineNumber = mt.getName().getBegin().get().line;
-//
-//            if (!(method.path.toLowerCase().contains("test") || method.name.toLowerCase().contains("test"))) {
-//                // we ignore all methods that has the word test in the path name or even in the method namee..
-//                //            System.out.println(method.path);
-//                Main.uniquePath.put(method.path, 1);
-//                methods.add(method);
-//
-//            }
+            String methodIdentifier = Util.buildMethodIdentifier(filepath, mt.getNameAsString(), mt.getName().getBegin().get().line);
+            String prevCommit = tracker.getPrevCommit();
+            if(prevCommit != null) {
+                if(!tracker.methodExistInPrevCommit(methodIdentifier)) {
+                    tracker.addMethodToCurrentList(methodIdentifier);
+                    tracker.addMethodToPrevCommitAsRmvList(methodIdentifier);
+                }
+            } else {
+                tracker.addMethodToCurrentList(methodIdentifier);
+            }
 
         }
     }
