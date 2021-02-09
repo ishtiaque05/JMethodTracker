@@ -2,15 +2,17 @@ package com.ishtiaque.JTracker;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class Tracker {
     private static String currentCommit;
     private static String prevCommit;
-    private static HashMap<String, HashMap<String, ArrayList<String>>> data = new HashMap<String, HashMap<String, ArrayList<String>>>();
-    private static HashMap<String, ArrayList<String>> currentMethodHash = new HashMap<String, ArrayList<String>>();
-    private static ArrayList<String> currentMethodList = new ArrayList<String>();
-    private static ArrayList<String> methodsRemoveAtPrevCommit = new ArrayList<String>();
+    // this store commit: { methodList: {key: val}}
+    private static LinkedHashMap<String, LinkedHashMap <String, LinkedHashMap <String, String>>> data = new LinkedHashMap <String, LinkedHashMap <String, LinkedHashMap <String, String>>>();
+    private static LinkedHashMap <String, LinkedHashMap <String, String>> currentMethodHash = new LinkedHashMap <String, LinkedHashMap <String, String>>();
+    private static LinkedHashMap <String, String> currentMethodList = new LinkedHashMap <String, String>();
+    private static LinkedHashMap <String, String> methodsRemoveAtPrevCommit = new LinkedHashMap <String, String>();
 
     public Tracker(String currentCommit, String prevCommit){
         this.currentCommit = currentCommit;
@@ -29,48 +31,29 @@ public class Tracker {
 
     public String getPrevCommit() { return  this.prevCommit; }
 
-    public HashMap<String,  HashMap<String, ArrayList<String>>>  getData() { return this.data; }
+    public LinkedHashMap <String, LinkedHashMap <String, LinkedHashMap <String, String>>>  getData() { return this.data; }
 
     public void addData(String currentCommit) {
         currentMethodHash.put("methodList", currentMethodList);
         data.put(currentCommit, currentMethodHash);
     }
 
-
-
-    public HashMap<String, ArrayList<String>> getCurrentMethodHash() {
-        return currentMethodHash;
-    }
-
-    public void addMethodListToCurrentCommit(String key, ArrayList<String> methodList) {
-        currentMethodHash.put(key, methodList);
-    }
-
-    private void addMethodsRemoveAtPrevCommit(String key, ArrayList<String> methodList) {
-        currentMethodHash.put(key, methodList);
-    }
-
-    public void addMethodToCurrentList(String method) {
-        currentMethodList.add(method);
-    }
-
-    public ArrayList<String> getCurrentMethodList() {
-        return currentMethodList;
+    public void addMethodToCurrentList(String methodSignature,String methodInfo) {
+        currentMethodList.put(methodSignature, methodInfo);
     }
 
     public void resetCurrentMethodVars() {
-        currentMethodList = new ArrayList<String>();
-        methodsRemoveAtPrevCommit = new ArrayList<String>();
-        currentMethodHash = new HashMap<String, ArrayList<String>>();
+        currentMethodList = new LinkedHashMap <String, String>();
+        methodsRemoveAtPrevCommit = new LinkedHashMap <String, String>();
+        currentMethodHash = new LinkedHashMap<String, LinkedHashMap <String, String>>();
     }
 
     public Boolean methodExistInPrevCommit(String methodIdentifier) {
-        ArrayList<String> prevMethodList = data.get(prevCommit).get("methodList");
-        return prevMethodList.contains(methodIdentifier);
+        return data.get(prevCommit).get("methodList").containsKey(methodIdentifier);
     }
 
-    public void addMethodToPrevCommitAsRmvList(String methodIdentifier) {
-        methodsRemoveAtPrevCommit.add(methodIdentifier);
+    public void addMethodToPrevCommitAsRmvList(String methodSignature, String methodIdentifier) {
+        methodsRemoveAtPrevCommit.put(methodSignature, methodIdentifier);
         data.get(prevCommit).put("removedMethod", methodsRemoveAtPrevCommit);
     }
 }

@@ -44,16 +44,17 @@ public class JavaParser {
         public void visit(MethodDeclaration mt, String filepath) {
             super.visit(mt, filepath);
             //System.out.println(mt.getName());
+            String methodSignature =  mt.getDeclarationAsString(true, false, true).replaceAll(" ", "");
             System.out.println(mt.getNameAsString());
             String methodIdentifier = Util.buildMethodIdentifier(filepath, mt.getNameAsString(), mt.getName().getBegin().get().line);
             String prevCommit = tracker.getPrevCommit();
             if(prevCommit != null) {
                 if(!tracker.methodExistInPrevCommit(methodIdentifier)) {
-                    tracker.addMethodToCurrentList(methodIdentifier);
-                    tracker.addMethodToPrevCommitAsRmvList(methodIdentifier);
+                    tracker.addMethodToCurrentList(methodSignature, methodIdentifier);
+                    tracker.addMethodToPrevCommitAsRmvList(methodSignature, methodIdentifier);
                 }
             } else {
-                tracker.addMethodToCurrentList(methodIdentifier);
+                tracker.addMethodToCurrentList(methodSignature, methodIdentifier);
             }
 
         }
