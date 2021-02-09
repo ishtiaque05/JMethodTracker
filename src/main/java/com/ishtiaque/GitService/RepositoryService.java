@@ -1,5 +1,6 @@
 package com.ishtiaque.GitService;
 
+import com.ishtiaque.JTracker.Tracker;
 import com.ishtiaque.Parser.JavaParser;
 import com.ishtiaque.Wrappers.StartEnv;
 import org.eclipse.jgit.api.Git;
@@ -12,15 +13,19 @@ import org.eclipse.jgit.treewalk.TreeWalk;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 public class RepositoryService {
     private Git git;
     private Repository repository;
     private StartEnv startenv;
-    public RepositoryService(Git git, Repository repository, StartEnv env) {
+    private Tracker tracker;
+    public RepositoryService(Git git, Repository repository, StartEnv env, Tracker tracker) {
         this.git = git;
         this.repository = repository;
         this.startenv = env;
+        this.tracker = tracker;
     }
     public void startTracking(ObjectId startId) throws IOException, GitAPIException {
         // use the following instead to list commits on a specific branch
@@ -31,6 +36,13 @@ public class RepositoryService {
         int count = 0;
         for (RevCommit commit : commits) {
             System.out.println(commit.getName());
+            if (startenv.getStartcommit().equals(commit.getName())) {
+                tracker.setCurrentCommit(commit.getName());
+                tracker.setPrevCommit("");
+            } else {
+                tracker.setPrevCommit(tracker.getCurrentCommit());
+                tracker.setCurrentCommit(commit.getName());
+            }
             iterateAllFiles(commit.getName());
             count++;
         }
@@ -52,15 +64,18 @@ public class RepositoryService {
             try (TreeWalk treeWalk = new TreeWalk(repository)) {
                 treeWalk.addTree(tree);
                 treeWalk.setRecursive(true);
+                ArrayList<String> methodList = new ArrayList<String>();;
                 while (treeWalk.next()) {
                     System.out.println("found: " + treeWalk.getPathString());
                     String filepath = treeWalk.getPathString();
                     if(filepath.endsWith(".java")) {
                         ObjectId blobId = treeWalk.getObjectId(0);
 //                        startenv.getRepopath() + filepath
-                        JavaParser.parseFile(getFileContentByObjectId(blobId));
+                        JavaParser.parseFile(getFileContentByObjectId(blobId), filepath, methodList);
                     }
                 }
+                this.tracker.addData(refCommit, methodList);
+//                TODO compare data here
             }
         }
     }

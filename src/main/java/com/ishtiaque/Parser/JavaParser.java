@@ -7,9 +7,12 @@ import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.visitor.VoidVisitor;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
+import com.ishtiaque.Util.Util;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class JavaParser {
     public static void setupParser() {
@@ -19,22 +22,29 @@ public class JavaParser {
         StaticJavaParser.setConfiguration(parserConfiguration);
     }
 
-    public static void parseFile(String file) throws FileNotFoundException {
-        CompilationUnit cu = StaticJavaParser.parse(file);
+    public static void parseFile(String fileContent, String filepath, List<String> methodListCollector) throws FileNotFoundException {
+        CompilationUnit cu = StaticJavaParser.parse(fileContent);
         if (cu != null) {
-            VoidVisitor<String> methodVisitor = new MethodLister();
-            methodVisitor.visit(cu, file);
+            VoidVisitor<List<String>> methodVisitor = new MethodLister(filepath);
+            methodVisitor.visit(cu, methodListCollector);
+//            return methodListCollector;
         } else {
             System.out.println("NULL compilation unit");
+//            return null;
         }
     }
 
-    public static class MethodLister extends VoidVisitorAdapter<String> {
+    public static class MethodLister extends VoidVisitorAdapter<List<String>> {
+        public static String filepath;
+        public MethodLister(String filepath) {
+            this.filepath = filepath;
+        }
         @Override
-        public void visit(MethodDeclaration mt, String file) {
-            super.visit(mt, file);
+        public void visit(MethodDeclaration mt, List<String> collector) {
+            super.visit(mt, collector);
             //System.out.println(mt.getName());
             System.out.println(mt.getNameAsString());
+            collector.add(Util.buildMethodIdentifier(this.filepath, mt.getNameAsString(), mt.getName().getBegin().get().line));
 //            Method method = new Method();
 //            method.name = mt.getNameAsString();
 //            method.path = file.replace(Main.BASE_PATH + Main.PROJECT + "/", "");

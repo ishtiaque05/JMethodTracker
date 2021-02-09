@@ -58,10 +58,11 @@ public class MainCli {
 //            FOR DEBUGGING
             StartEnv startenv = new StartEnv(repopath + "/",  startCommitName, outputFilePath, repositoryName);
             Repository repository = Util.createRepository(repositoryPath);
+            Git git = new Git(repository);
             JavaParser.setupParser(); // setup parser
             ObjectId startID = repository.resolve(startCommitName);
-            Git git = new Git(repository);
-            RepositoryService repoService = new RepositoryService(git, repository, startenv);
+            Tracker tracker = new Tracker(startCommitName, null);
+            RepositoryService repoService = new RepositoryService(git, repository, startenv, tracker);
             repoService.startTracking(startID);
 
         } catch (ParseException e){

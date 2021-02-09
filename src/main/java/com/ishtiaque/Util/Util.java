@@ -14,4 +14,8 @@ public class Util {
                 .findGitDir() // scan up the file system tree
                 .build();
     }
+
+    public static String buildMethodIdentifier(String filepath, String methodname, int startline) {
+        return filepath + "#" + methodname + "#" + startline;
+    }
 }

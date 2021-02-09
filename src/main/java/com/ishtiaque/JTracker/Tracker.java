@@ -8,7 +8,7 @@ public class Tracker {
     private String currentCommit;
     private String prevCommit;
     private static Map<String, ArrayList<String>> data = new HashMap<String, ArrayList<String>>();
-
+    private static ArrayList<String> currentMethodList = new ArrayList<String>();
     public Tracker(String currentCommit, String prevCommit){
         this.currentCommit = currentCommit;
         this.prevCommit = prevCommit;
@@ -28,6 +28,7 @@ public class Tracker {
 
     public Map<String, ArrayList<String>>  getData() { return this.data; }
 
-
-
+    public void addData(String commit, ArrayList<String> methodList) {
+        data.put(commit, methodList);
+    }
 }
