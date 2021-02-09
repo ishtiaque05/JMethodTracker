@@ -23,7 +23,7 @@ public class JavaParser {
         StaticJavaParser.setConfiguration(parserConfiguration);
     }
 
-    public static void parseFile(String fileContent, String filepath, Tracker tracker) throws FileNotFoundException {
+    public static void parseFile(File fileContent, String filepath, Tracker tracker) throws FileNotFoundException {
         CompilationUnit cu = StaticJavaParser.parse(fileContent);
         if (cu != null) {
             VoidVisitor<String> methodVisitor = new MethodLister(tracker);
